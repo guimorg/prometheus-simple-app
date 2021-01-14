@@ -1,0 +1,40 @@
+version: '3'
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+services:
+  webapp:
+    build: .
+    container_name: webapp
+    expose:
+      - 5000
+    ports:
+      - 5000:5000
+    volumes:
+      - ./:/application
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./config/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    depends_on:
+      - cadvisor
+
+  cadvisor:
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
